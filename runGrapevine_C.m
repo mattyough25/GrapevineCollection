@@ -105,7 +105,12 @@ if bWrite2File && ~ishandle(bWaitbar)
 
     NS5_Data = openNSx([sFile,'.ns5']);
     nDataGrapevine.arrayraw = double(NS5_Data.Data);
-    save(sFileMat,'nDataGrapevine');
+
+    try
+        save(sFileMat,'nDataGrapevine');
+    catch
+        save(sFileMat,'nDataGrapevine', '-v7.3');
+    end
 
     cd(sPath);
 end
