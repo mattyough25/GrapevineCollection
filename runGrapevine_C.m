@@ -107,7 +107,7 @@ if bWrite2File && ~ishandle(bWaitbar)
     nDataGrapevine.arrayraw = double(NS5_Data.Data);
     s = whos('nDataGrapevine');
 
-    if s >= 2e9
+    if s.bytes < 2e9
         save(sFileMat,'nDataGrapevine');
     else
         save(sFileMat,'nDataGrapevine', '-v7.3');
