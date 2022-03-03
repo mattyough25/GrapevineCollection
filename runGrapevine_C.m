@@ -10,9 +10,9 @@ bWrite2File = true;
 
 %% Set File Name
 sDataPath = cd;
-sFile = [sprintf('GRAPEVINE_Array_WristSupination_1_%s', datestr(now,'mm-dd-yyyy-HH-MM-SS'))];
+sFile = [sprintf('GRAPEVINE_Array_BB_VR_2_%s', datestr(now,'mm-dd-yyyy-HH-MM-SS'))];
 sFilePath = [sDataPath,filesep,sFile];
-sFileMat = sprintf('GRAPEVINE_Array_WristSupination_1_%s.mat', datestr(now,'mm-dd-yyyy-HH-MM-SS'));
+sFileMat = sprintf('GRAPEVINE_Array_BB_VR_2_%s.mat', datestr(now,'mm-dd-yyyy-HH-MM-SS'));
 
 %% Define ip_address
 ip = ['[]'];
@@ -105,10 +105,11 @@ if bWrite2File && ~ishandle(bWaitbar)
 
     NS5_Data = openNSx([sFile,'.ns5']);
     nDataGrapevine.arrayraw = double(NS5_Data.Data);
+    s = whos('nDataGrapevine');
 
-    try
+    if s >= 2e9
         save(sFileMat,'nDataGrapevine');
-    catch
+    else
         save(sFileMat,'nDataGrapevine', '-v7.3');
     end
 
