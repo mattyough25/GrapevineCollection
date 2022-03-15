@@ -15,7 +15,7 @@ sFilePath = [sDataPath,filesep,sFile];
 sFileMat = sprintf('GRAPEVINE_Array_BB_VR_2_%s.mat', datestr(now,'mm-dd-yyyy-HH-MM-SS'));
 
 %% Define ip_address
-ip = ['[]'];
+ip = ['10.3.6.85'];
 
 %% Subscribe to DF Messages
 % add messages
@@ -35,7 +35,7 @@ Subscribe( MessageTypes{:});
 %% Run Record Executable
 record = actxserver('WScript.Shell');
 record.Run('record'); %Invokes record.exe
-pause(0.5); %Waits for the application to load.
+pause(1); %Waits for the application to load.
 record.AppActivate('record'); %Brings executable to focus
 pause(0.1)
 record.SendKeys('y');
@@ -57,29 +57,36 @@ pause(0.1)
 record.SendKeys('r');
 pause(0.1)
 
-%% read timeserver timestamp
-% Request Time Server Time
-nMT  = EnsureNumericMessageType('REQUEST_TIMESTAMP_USER');
-% Get Sending Time
-msg         = DF.MDF.REQUEST_TIMESTAMP_USER;
-UnsafeSendMessage( nMT, msg);
 
-for iMessage = 1:2
-   M           = ReadMessage('blocking');
-   if iMessage == 2
-       record.SendKeys('{ENTER}');
-   end
-end
- 
-nDataGrapevine.tTime(1) = M.data.t;   
 
 %% Connect to Dragonfly and Get TimeServer Time
 if bRun
-    ix = 1;
+    
+    %% read timeserver timestamp
+    % Request Time Server Time
+    nMT  = EnsureNumericMessageType('REQUEST_TIMESTAMP_USER');
+    % Get Sending Time
+    msg         = DF.MDF.REQUEST_TIMESTAMP_USER;
+    UnsafeSendMessage( nMT, msg);
+    
+    for iMessage = 1:2
+        M           = ReadMessage('blocking');
+        if ~isempty(M.data)
+            record.SendKeys('{ENTER}');
+            break;
+        end
+    end
+    
+    nDataGrapevine.tTime(1) = M.data.t;
     
     bWaitbar = waitbar(0, 'Grapevine EMG', 'Name', 'Collecting Data','CreateCancelBtn','delete(gcbf)');
+    
+    ix = 1;
+    tic
     while bRun
         drawnow;
+        nDataGrapevine.tCountTime(ix) = toc;
+        ix = ix + 1;
         
         if ~ishandle(bWaitbar)
             record.SendKeys('s{ENTER}x{ENTER}');
@@ -102,16 +109,16 @@ end
 %% Convert ns5 file and Save as Mat File
 if bWrite2File && ~ishandle(bWaitbar)
     cd(sDataPath);
-
+    
     NS5_Data = openNSx([sFile,'.ns5']);
     nDataGrapevine.arrayraw = double(NS5_Data.Data);
     s = whos('nDataGrapevine');
-
+    
     if s.bytes < 2e9
         save(sFileMat,'nDataGrapevine');
     else
         save(sFileMat,'nDataGrapevine', '-v7.3');
     end
-
+    
     cd(sPath);
 end
